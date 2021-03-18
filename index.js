@@ -1,18 +1,28 @@
-const express=require('express')
-var request=require('request');
-const app=express()
-const port=4000
+const http = require('http');
 
-app.listen(port,()=>{
-    console.log(`App listening at ${port}`)
-})
+function onRequest(req, res) {
+    
+  const options = {
+    hostname: '34.72.155.232',
+    port: 3000,
+    path: req.url,
+    method: req.method,
+    headers: req.headers
+  };
 
-app.get('/',(req,res)=>{
-    res.status(200);
-    res.send('Application Running');
-})
+  console.log(options);
 
-app.get('/datasource',function(req,res){
-    var newurl='http://34.72.155.232:3000/datasource';
-    request(newurl).pipe(res);
-});
+  const proxy = http.request(options, function (r) {
+    res.writeHead(r.statusCode, r.headers);
+    r.pipe(res, {
+      end: true
+    });
+  });
+
+  req.pipe(proxy, {
+    end: true
+  });
+}
+
+http.createServer(onRequest).listen(4000);
+console.log('Listening on port 4000')
